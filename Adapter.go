@@ -34,7 +34,11 @@ func NewAdapter(cfg Config) (AdapterInterface, error) {
 
 // ContextWithTraceID attaches a trace id to context that can be later read by the logger.
 func (a *Adapter) ContextWithTraceID(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, internal.ID, id)
+	c := context.WithValue(ctx, internal.ID, id)
+
+	fmt.Printf("UUID: %v", c.Value(internal.ID))
+
+	return c
 }
 
 // ContextWithTracePoint attaches an appendable trace points to context that can be later read by the logger.
@@ -118,10 +122,10 @@ func (a *Adapter) formatMessage(ctx context.Context, logLevel string, message st
 
 	now := time.Now().Format("2006/01/02 15:04:05.000000")
 	uuid := ctx.Value(internal.ID)
-	prefix := ctx.Value(internal.TraceKey)
+	tracePoints := ctx.Value(internal.TraceKey)
 	level := a.setTag(logLevel)
 
-	return fmt.Sprintf("%s %s [%s] [%v] [%v] [%v]", now, level, uuid, prefix, message, options)
+	return fmt.Sprintf("%s %s [%s] [%v] [%v] [%v]", now, level, uuid, tracePoints, message, options)
 }
 
 // Check whether the message should be logged depending on the log level setting.
