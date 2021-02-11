@@ -7,11 +7,11 @@ import (
 // AdapterInterface is implemented by all logging adapters.
 type AdapterInterface interface {
 
-	// ContextWithTraceID attaches a trace id to context that can be later read by the logger.
-	ContextWithTraceID(ctx context.Context, id string) context.Context
+	// AddTraceID attaches a trace id to context that can be later read by the logger.
+	AddTraceID(ctx context.Context, id string) context.Context
 
-	// ContextWithTracePoint attaches an appendable trace path to context that can be later read by the logger.
-	ContextWithTracePoint(ctx context.Context, point string) context.Context
+	// AppendTracePoint appends the given trace point to a trace path in context that can be later read by the logger.
+	AppendTracePoint(ctx context.Context, point string) context.Context
 
 	// Error logs a message as of error type.
 	Error(ctx context.Context, message string, options ...interface{})

@@ -32,17 +32,13 @@ func NewAdapter(cfg Config) (AdapterInterface, error) {
 	return a, nil
 }
 
-// ContextWithTraceID attaches a trace id to context that can be later read by the logger.
-func (a *Adapter) ContextWithTraceID(ctx context.Context, id string) context.Context {
-	c := context.WithValue(ctx, internal.ID, id)
-
-	fmt.Printf("UUID: %v", c.Value(internal.ID))
-
-	return c
+// AddTraceID attaches a trace id to context that can be later read by the logger.
+func (a *Adapter) AddTraceID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, internal.ID, id)
 }
 
-// ContextWithTracePoint attaches an appendable trace points to context that can be later read by the logger.
-func (a *Adapter) ContextWithTracePoint(ctx context.Context, point string) context.Context {
+// AppendTracePoint appends the given trace point to a trace path in context that can be later read by the logger.
+func (a *Adapter) AppendTracePoint(ctx context.Context, point string) context.Context {
 
 	path := ctx.Value(internal.TraceKey)
 
@@ -101,7 +97,7 @@ func (a *Adapter) initLogFile() error {
 }
 
 // Logs a message using the following format.
-// <date> <time_in_24h_foramt_plus_milliseconds> [<message_type>] [<uuid>] [<prefix>] [<message>] [<additional_information>]
+// <date> <time_in_24h_foramt_plus_milliseconds> [<log_level>] [<uuid>] [<trace_points>] [<message>] [<additional_information>]
 // ex:
 //		2019/01/14 12:13:29.435517 [ERROR] [b2e1bfc7-11ed-40e5-ab08-abeadef079e6] [usecases.TestUsecase.TestFunc] [error message] [key1: value1, ...]
 func (a *Adapter) log(ctx context.Context, logLevel string, message string, options ...interface{}) {
@@ -120,12 +116,22 @@ func (a *Adapter) log(ctx context.Context, logLevel string, message string, opti
 // formatMessage formats the log message.
 func (a *Adapter) formatMessage(ctx context.Context, logLevel string, message string, options ...interface{}) string {
 
-	now := time.Now().Format("2006/01/02 15:04:05.000000")
-	uuid := ctx.Value(internal.ID)
-	tracePoints := ctx.Value(internal.TraceKey)
-	level := a.setTag(logLevel)
+	var now = time.Now().Format("2006/01/02 15:04:05.000000")
+	var level = a.setTag(logLevel)
+	var uuid = "NONE"
+	var trace = "NONE"
 
-	return fmt.Sprintf("%s %s [%s] [%v] [%v] [%v]", now, level, uuid, tracePoints, message, options)
+	id, ok := ctx.Value(internal.ID).(string)
+	if ok {
+		uuid = id
+	}
+
+	points, ok := ctx.Value(internal.TraceKey).(string)
+	if ok {
+		trace = points
+	}
+
+	return fmt.Sprintf("%s %s [%s] [%v] [%v] [%v]", now, level, uuid, trace, message, options)
 }
 
 // Check whether the message should be logged depending on the log level setting.
