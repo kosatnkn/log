@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	logContext "github.com/kosatnkn/log/context"
+	"github.com/kosatnkn/log/internal"
 	"github.com/logrusorgru/aurora"
 )
 
@@ -30,6 +30,23 @@ func NewAdapter(cfg Config) (AdapterInterface, error) {
 	}
 
 	return a, nil
+}
+
+// ContextWithTraceID attaches a trace id to context that can be later read by the logger.
+func (a *Adapter) ContextWithTraceID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, internal.ID, id)
+}
+
+// ContextWithTracePoint attaches an appendable trace points to context that can be later read by the logger.
+func (a *Adapter) ContextWithTracePoint(ctx context.Context, point string) context.Context {
+
+	path := ctx.Value(internal.TraceKey)
+
+	if path == nil {
+		return context.WithValue(ctx, internal.TraceKey, point)
+	}
+
+	return context.WithValue(ctx, internal.TraceKey, path.(string)+">"+point)
 }
 
 // Error logs a message as of error type.
@@ -100,8 +117,8 @@ func (a *Adapter) log(ctx context.Context, logLevel string, message string, opti
 func (a *Adapter) formatMessage(ctx context.Context, logLevel string, message string, options ...interface{}) string {
 
 	now := time.Now().Format("2006/01/02 15:04:05.000000")
-	uuid := ctx.Value(logContext.UUIDKey)
-	prefix := ctx.Value(logContext.TraceKey)
+	uuid := ctx.Value(internal.ID)
+	prefix := ctx.Value(internal.TraceKey)
 	level := a.setTag(logLevel)
 
 	return fmt.Sprintf("%s %s [%s] [%v] [%v] [%v]", now, level, uuid, prefix, message, options)
