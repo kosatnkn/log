@@ -97,9 +97,9 @@ func (a *Adapter) initLogFile() error {
 }
 
 // Logs a message using the following format.
-// <date> <time_in_24h_foramt_plus_milliseconds> [<log_level>] [<uuid>] [<trace_points>] [<message>] [<additional_information>]
+// <date> <time_in_24h_foramt_plus_milliseconds> [<log_level>] [<uuid>] [<trace_points>] [<message>] : [<additional_information>]
 // ex:
-//		2019/01/14 12:13:29.435517 [ERROR] [b2e1bfc7-11ed-40e5-ab08-abeadef079e6] [usecases.TestUsecase.TestFunc] [error message] [key1: value1, ...]
+//		2019/01/14 12:13:29.435517 [ERROR] [b2e1bfc7-11ed-40e5-ab08-abeadef079e6] [usecases.TestUsecase.TestFunc] [error message] : [key1: value1, ...]
 func (a *Adapter) log(ctx context.Context, logLevel string, message string, options ...interface{}) {
 
 	// check whether the message should be logged
@@ -131,7 +131,11 @@ func (a *Adapter) formatMessage(ctx context.Context, logLevel string, message st
 		trace = points
 	}
 
-	return fmt.Sprintf("%s %s [%s] [%v] [%v] [%v]", now, level, uuid, trace, message, options)
+	if len(options) == 0 {
+		return fmt.Sprintf("%s %s [%s] [%s] [%s]", now, level, uuid, trace, message)
+	}
+
+	return fmt.Sprintf("%s %s [%s] [%s] [%s] : [%v]", now, level, uuid, trace, message, options)
 }
 
 // Check whether the message should be logged depending on the log level setting.
