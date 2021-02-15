@@ -51,22 +51,22 @@ func (a *Adapter) AppendTracePoint(ctx context.Context, point string) context.Co
 
 // Error logs a message as of error type.
 func (a *Adapter) Error(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "ERROR", message, options)
+	a.log(ctx, "ERROR", message, options...)
 }
 
 // Debug logs a message as of debug type.
 func (a *Adapter) Debug(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "DEBUG", message)
+	a.log(ctx, "DEBUG", message, options...)
 }
 
 // Info logs a message as of information type.
 func (a *Adapter) Info(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "INFO", message, options)
+	a.log(ctx, "INFO", message, options...)
 }
 
 // Warn logs a message as of warning type.
 func (a *Adapter) Warn(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "WARN", message, options)
+	a.log(ctx, "WARN", message, options...)
 }
 
 // Destruct will close the logger gracefully releasing all resources.
@@ -107,7 +107,7 @@ func (a *Adapter) log(ctx context.Context, logLevel string, message string, opti
 		return
 	}
 
-	m := a.formatMessage(ctx, logLevel, message, options)
+	m := a.formatMessage(ctx, logLevel, message, options...)
 
 	a.logToConsole(m)
 	a.logToFile(m)
@@ -135,7 +135,7 @@ func (a *Adapter) formatMessage(ctx context.Context, logLevel string, message st
 		return fmt.Sprintf("%s %s [%s] [%s] [%s]", now, level, uuid, trace, message)
 	}
 
-	return fmt.Sprintf("%s %s [%s] [%s] [%s] : [%v]", now, level, uuid, trace, message, options)
+	return fmt.Sprintf("%s %s [%s] [%s] [%s] : %v", now, level, uuid, trace, message, options)
 }
 
 // Check whether the message should be logged depending on the log level setting.
