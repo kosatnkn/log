@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/kosatnkn/log/internal"
-	"github.com/logrusorgru/aurora"
 )
 
 // Adapter is used to provide structured log messages.
@@ -155,27 +155,19 @@ func (a *Adapter) isLoggable(logLevel string) bool {
 func (a *Adapter) setTag(logLevel string) interface{} {
 
 	if a.cfg.Colors {
-		var logLevelVal aurora.Value
 
 		switch logLevel {
 		case "ERROR":
-			logLevelVal = aurora.Red("[ERROR]")
-			break
+			return color.New(color.FgRed).Sprint("[ERROR]")
 		case "DEBUG":
-			logLevelVal = aurora.Green("[DEBUG]")
-			break
+			return color.Debug.Sprint("[DEBUG]")
 		case "INFO":
-			logLevelVal = aurora.Cyan("[INFO]")
-			break
+			return color.Info.Sprint("[INFO]")
 		case "WARN":
-			logLevelVal = aurora.Brown("[WARN]")
-			break
+			return color.New(color.FgYellow).Sprint("[WARN]")
 		default:
-			logLevelVal = aurora.Magenta("[UNKNOWN]")
-			break
+			return "[" + logLevel + "]"
 		}
-
-		return logLevelVal
 	}
 
 	return "[" + logLevel + "]"

@@ -29,4 +29,13 @@ func TestMessage(t *testing.T) {
 
 	l.Error(context.Background(), "Hello")
 	l.Error(context.Background(), "Hello", "Additional 1", "Additional 2")
+
+	l.Debug(context.Background(), "Hello")
+	l.Debug(context.Background(), "Hello", "Additional 1", "Additional 2")
+
+	l.Info(context.Background(), "Hello")
+	l.Info(context.Background(), "Hello", "Additional 1", "Additional 2")
+
+	l.Warn(context.Background(), "Hello")
+	l.Warn(context.Background(), "Hello", "Additional 1", "Additional 2")
 }
