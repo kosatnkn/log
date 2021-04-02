@@ -20,11 +20,16 @@ type Adapter struct {
 // NewAdapter creates a new Log adapter instance.
 func NewAdapter(cfg Config) (AdapterInterface, error) {
 
+	err := validateCfg(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	a := &Adapter{
 		cfg: cfg,
 	}
 
-	err := a.initLogFile()
+	err = a.initLogFile()
 	if err != nil {
 		return nil, err
 	}
@@ -51,22 +56,22 @@ func (a *Adapter) AppendTracePoint(ctx context.Context, point string) context.Co
 
 // Error logs a message as of error type.
 func (a *Adapter) Error(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "ERROR", message, options...)
+	a.log(ctx, levelError, message, options...)
 }
 
 // Debug logs a message as of debug type.
 func (a *Adapter) Debug(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "DEBUG", message, options...)
+	a.log(ctx, levelDebug, message, options...)
 }
 
 // Info logs a message as of information type.
 func (a *Adapter) Info(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "INFO", message, options...)
+	a.log(ctx, levelInfo, message, options...)
 }
 
 // Warn logs a message as of warning type.
 func (a *Adapter) Warn(ctx context.Context, message string, options ...interface{}) {
-	a.log(ctx, "WARN", message, options...)
+	a.log(ctx, levelWarn, message, options...)
 }
 
 // Destruct will close the logger gracefully releasing all resources.
@@ -77,7 +82,7 @@ func (a *Adapter) Destruct() {
 	}
 }
 
-// Initialize the log file.
+// initLogFile initialize the log file.
 func (a *Adapter) initLogFile() error {
 
 	if !a.cfg.File {
@@ -96,7 +101,7 @@ func (a *Adapter) initLogFile() error {
 	return nil
 }
 
-// Logs a message using the following format.
+// log logs a message using the following format.
 // <date> <time_in_24h_foramt_plus_milliseconds> [<log_level>] [<uuid>] [<trace_points>] [<message>] : [<additional_information>]
 // ex:
 //		2019/01/14 12:13:29.435517 [ERROR] [b2e1bfc7-11ed-40e5-ab08-abeadef079e6] [usecases.TestUsecase.TestFunc] [error message] : [key1: value1, ...]
@@ -109,8 +114,8 @@ func (a *Adapter) log(ctx context.Context, logLevel string, message string, opti
 
 	m := a.formatMessage(ctx, logLevel, message, options...)
 
-	a.logToConsole(m)
-	a.logToFile(m)
+	a.toConsole(m)
+	a.toFile(m)
 }
 
 // formatMessage formats the log message.
@@ -138,51 +143,43 @@ func (a *Adapter) formatMessage(ctx context.Context, logLevel string, message st
 	return fmt.Sprintf("%s %s [%s] [%s] [%s] : %v", now, level, uuid, trace, message, options)
 }
 
-// Check whether the message should be logged depending on the log level setting.
-func (a *Adapter) isLoggable(logLevel string) bool {
-
-	l := map[string]int{
-		"ERROR": 1,
-		"DEBUG": 2,
-		"WARN":  3,
-		"INFO":  4,
-	}
-
-	return l[logLevel] >= l[a.cfg.Level]
+// Check whether the message should be logged depending on the granularity of the log level.
+func (a *Adapter) isLoggable(level string) bool {
+	return granularity[level] >= granularity[a.cfg.Level]
 }
 
 // Generate tags based on color configuration settings.
-func (a *Adapter) setTag(logLevel string) interface{} {
+func (a *Adapter) setTag(level string) interface{} {
 
 	if a.cfg.Colors {
 
-		switch logLevel {
-		case "ERROR":
+		switch level {
+		case levelError:
 			return color.New(color.FgRed).Sprint("[ERROR]")
-		case "DEBUG":
+		case levelDebug:
 			return color.Debug.Sprint("[DEBUG]")
-		case "INFO":
+		case levelInfo:
 			return color.Info.Sprint("[INFO]")
-		case "WARN":
+		case levelWarn:
 			return color.New(color.FgYellow).Sprint("[WARN]")
 		default:
-			return "[" + logLevel + "]"
+			return "[" + level + "]"
 		}
 	}
 
-	return "[" + logLevel + "]"
+	return "[" + level + "]"
 }
 
-// Logs a message to the console.
-func (a *Adapter) logToConsole(message string) {
+// toConsole logs a message to the console.
+func (a *Adapter) toConsole(message string) {
 
 	if a.cfg.Console {
 		fmt.Println(message)
 	}
 }
 
-// Logs a message to a file.
-func (a *Adapter) logToFile(message string) {
+// toFile logs a message to a file.
+func (a *Adapter) toFile(message string) {
 
 	if !a.cfg.File {
 		return
