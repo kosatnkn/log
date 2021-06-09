@@ -35,9 +35,7 @@ func TestInvalidConfig(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-
 		t.Run(tc.name, func(t *testing.T) {
-
 			cfg := log.Config{
 				Level:   tc.level,
 				Colors:  true,
@@ -83,9 +81,7 @@ func TestLogLevels(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-
 		t.Run(tc.name, func(t *testing.T) {
-
 			l := newLogger(t, tc.level)
 
 			l.Error(context.Background(), "Hello")

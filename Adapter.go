@@ -46,7 +46,6 @@ func (a *Adapter) AddTraceID(ctx context.Context, id string) context.Context {
 func (a *Adapter) AppendTracePoint(ctx context.Context, point string) context.Context {
 
 	path := ctx.Value(internal.TraceKey)
-
 	if path == nil {
 		return context.WithValue(ctx, internal.TraceKey, point)
 	}
@@ -152,7 +151,6 @@ func (a *Adapter) isLoggable(level string) bool {
 func (a *Adapter) setTag(level string) interface{} {
 
 	if a.cfg.Colors {
-
 		switch level {
 		case levelError:
 			return color.New(color.FgRed).Sprint("[ERROR]")

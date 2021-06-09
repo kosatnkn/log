@@ -7,7 +7,7 @@ func validateCfg(cfg Config) error {
 
 	_, ok := granularity[cfg.Level]
 	if !ok {
-		return fmt.Errorf("Unknown log level '%s'", cfg.Level)
+		return fmt.Errorf("logger: unknown log level '%s'", cfg.Level)
 	}
 
 	return nil
